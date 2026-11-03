@@ -11,6 +11,9 @@ from PySide6.QtWidgets import (
     QComboBox,
     QSpinBox,
     QMessageBox,
+    QSystemTrayIcon,
+    QMenu,
+    QStyle,
 )
 
 from pynput.mouse import Button, Controller
@@ -220,6 +223,27 @@ class AutoClicker(QWidget):
         self.capture_target = None
 
         self.create_interface()
+        self.create_tray_icon()
+
+    def create_tray_icon(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+        )
+        self.tray_icon.setToolTip("Presence - autoclicker")
+
+        tray_menu = QMenu()
+        show_action = tray_menu.addAction("Открыть Presence")
+        show_action.triggered.connect(self.show_from_tray)
+        tray_menu.addSeparator()
+        quit_action = tray_menu.addAction("Выйти")
+        quit_action.triggered.connect(self.quit_application)
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.activated.connect(self.on_tray_activated)
+
+        self.tray_available = QSystemTrayIcon.isSystemTrayAvailable()
+        if self.tray_available:
+            self.tray_icon.show()
 
     def create_interface(self):
         layout = QVBoxLayout()
@@ -505,12 +529,45 @@ class AutoClicker(QWidget):
         )
 
     def closeEvent(self, event):
+        if self.tray_available and not getattr(self, "quitting", False):
+            self.hide()
+            self.tray_icon.showMessage(
+                "Presence",
+                "Автокликер работает в системном трее.",
+                QSystemTrayIcon.MessageIcon.Information,
+                2500,
+            )
+            event.ignore()
+            return
+
         self.stop_clicking()
         self.keyboard_bridge.close()
         event.accept()
 
+    def show_from_tray(self):
+        self.showNormal()
+        self.raise_()
+        self.activateWindow()
+
+    def on_tray_activated(self, reason):
+        if reason in (
+            QSystemTrayIcon.ActivationReason.Trigger,
+            QSystemTrayIcon.ActivationReason.DoubleClick,
+        ):
+            if self.isVisible():
+                self.hide()
+            else:
+                self.show_from_tray()
+
+    def quit_application(self):
+        self.quitting = True
+        self.tray_icon.hide()
+        self.close()
+        QApplication.quit()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
 
     app.setOrganizationName("Presence")
     app.setApplicationName("Presence")
