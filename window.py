@@ -1,4 +1,4 @@
-from PySide6.QtCore import QSettings
+from PySide6.QtCore import QElapsedTimer, QSettings, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -58,6 +58,10 @@ class AutoClicker(QWidget):
         )
 
         self.running = False
+        self.elapsed_clock = QElapsedTimer()
+        self.elapsed_timer = QTimer(self)
+        self.elapsed_timer.setInterval(1000)
+        self.elapsed_timer.timeout.connect(self.update_elapsed_time)
 
         self.capture_target = None
 
@@ -134,6 +138,9 @@ class AutoClicker(QWidget):
 
         self.counter = QLabel("Выполнено кликов: 0")
         layout.addWidget(self.counter)
+
+        self.elapsed_label = QLabel("Время работы: 00:00:00")
+        layout.addWidget(self.elapsed_label)
 
         layout.addWidget(QLabel("Горячие клавиши"))
 
@@ -297,6 +304,9 @@ class AutoClicker(QWidget):
             self.amount.value(),
         )
         self.running = True
+        self.elapsed_clock.start()
+        self.elapsed_timer.start()
+        self.update_elapsed_time()
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.mode.setEnabled(False)
@@ -309,6 +319,14 @@ class AutoClicker(QWidget):
     def update_click_count(self, count):
         self.counter.setText(f"Выполнено кликов: {count}")
 
+    def update_elapsed_time(self):
+        elapsed_seconds = self.elapsed_clock.elapsed() // 1000
+        hours, remainder = divmod(elapsed_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        self.elapsed_label.setText(
+            f"Время работы: {hours:02d}:{minutes:02d}:{seconds:02d}"
+        )
+
     def clicking_finished(self):
         self.stop_clicking("Состояние: завершено")
 
@@ -318,6 +336,9 @@ class AutoClicker(QWidget):
 
     def stop_clicking(self, status_text=None):
         self.clicker.stop()
+        self.elapsed_timer.stop()
+        if self.elapsed_clock.isValid():
+            self.update_elapsed_time()
         self.running = False
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
