@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 
 from clicker import Clicker
 from hotkeys import KeyboardBridge, format_hotkey, normalize_hotkey
+from translations import LANGUAGE_NAMES, TRANSLATIONS
 
 class AutoClicker(QWidget):
     def __init__(self):
@@ -25,9 +26,13 @@ class AutoClicker(QWidget):
         self.setMinimumWidth(380)
 
         self.settings = QSettings(
-            "Presense",
+            "Presence",
             "AutoClicker",
         )
+        saved_language = self.settings.value("language", "en", type=str)
+        self.language_code = saved_language if saved_language in TRANSLATIONS else "en"
+        self.status_key = "status_waiting"
+        self.capture_status_key = "capture_hint"
 
         self.start_hotkey = self.settings.value(
             "start_hotkey", "ctrl+f6", type=str
@@ -73,14 +78,14 @@ class AutoClicker(QWidget):
         self.tray_icon.setIcon(
             self.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
         )
-        self.tray_icon.setToolTip("Presence - Autoclicker")
+        self.tray_icon.setToolTip(self.tr("tray_tooltip"))
 
         tray_menu = QMenu()
-        show_action = tray_menu.addAction("Открыть Presence")
-        show_action.triggered.connect(self.show_from_tray)
+        self.show_action = tray_menu.addAction(self.tr("tray_open"))
+        self.show_action.triggered.connect(self.show_from_tray)
         tray_menu.addSeparator()
-        quit_action = tray_menu.addAction("Quit")
-        quit_action.triggered.connect(self.quit_application)
+        self.quit_action = tray_menu.addAction(self.tr("tray_quit"))
+        self.quit_action.triggered.connect(self.quit_application)
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.activated.connect(self.on_tray_activated)
 
@@ -91,27 +96,37 @@ class AutoClicker(QWidget):
     def create_interface(self):
         layout = QVBoxLayout()
 
-        layout.addWidget(QLabel("Режим работы:"))
+        language_layout = QHBoxLayout()
+        self.language_label = QLabel()
+        language_layout.addWidget(self.language_label)
+        self.language_selector = QComboBox()
+        for code, name in LANGUAGE_NAMES.items():
+            self.language_selector.addItem(name, code)
+        language_layout.addWidget(self.language_selector)
+        language_layout.addStretch()
+        self.language_selector.currentIndexChanged.connect(self.change_language)
+        layout.addLayout(language_layout)
 
         self.mode = QComboBox()
-        self.mode.addItem("Повторять сериями", "repeat")
-        self.mode.addItem("Ограниченное количество кликов", "limited")
+        self.mode.addItem("", "repeat")
+        self.mode.addItem("", "limited")
         self.mode.currentIndexChanged.connect(self.update_mode)
         layout.addWidget(self.mode)
 
-        layout.addWidget(QLabel("Интервал между действиями:"))
+        self.interval_label = QLabel()
+        layout.addWidget(self.interval_label)
 
         time_layout = QHBoxLayout()
 
         self.minutes = QSpinBox()
         self.minutes.setRange(0, 999)
-        self.minutes.setSuffix(" мин")
+        self.minutes.setSuffix(self.tr("minutes"))
         time_layout.addWidget(self.minutes)
 
         self.seconds = QSpinBox()
         self.seconds.setRange(0, 59)
         self.seconds.setValue(4)
-        self.seconds.setSuffix(" с")
+        self.seconds.setSuffix(self.tr("seconds"))
         time_layout.addWidget(self.seconds)
 
         layout.addLayout(time_layout)
@@ -124,35 +139,37 @@ class AutoClicker(QWidget):
         self.amount.setValue(1)
         layout.addWidget(self.amount)
 
-        self.start_button = QPushButton("Запустить")
+        self.start_button = QPushButton()
         self.start_button.clicked.connect(self.start_clicking)
         layout.addWidget(self.start_button)
 
-        self.stop_button = QPushButton("Остановить")
+        self.stop_button = QPushButton()
         self.stop_button.clicked.connect(self.stop_clicking)
         self.stop_button.setEnabled(False)
         layout.addWidget(self.stop_button)
 
-        self.status = QLabel("Состояние: ожидание")
+        self.status = QLabel()
         layout.addWidget(self.status)
 
-        self.counter = QLabel("Выполнено кликов: 0")
+        self.counter = QLabel()
         layout.addWidget(self.counter)
 
-        self.elapsed_label = QLabel("Время работы: 00:00:00")
+        self.elapsed_label = QLabel()
         layout.addWidget(self.elapsed_label)
 
-        layout.addWidget(QLabel("Горячие клавиши"))
+        self.hotkeys_title = QLabel()
+        layout.addWidget(self.hotkeys_title)
 
         start_layout = QHBoxLayout()
-        start_layout.addWidget(QLabel("Запуск:"))
+        self.start_hotkey_title = QLabel()
+        start_layout.addWidget(self.start_hotkey_title)
 
         self.start_hotkey_label = QLabel(
             format_hotkey(self.start_hotkey)
         )
         start_layout.addWidget(self.start_hotkey_label)
 
-        self.start_record_button = QPushButton("Изменить")
+        self.start_record_button = QPushButton()
         self.start_record_button.clicked.connect(
             lambda: self.begin_capture("start")
         )
@@ -160,28 +177,25 @@ class AutoClicker(QWidget):
         layout.addLayout(start_layout)
 
         stop_layout = QHBoxLayout()
-        stop_layout.addWidget(QLabel("Остановка:"))
+        self.stop_hotkey_title = QLabel()
+        stop_layout.addWidget(self.stop_hotkey_title)
 
         self.stop_hotkey_label = QLabel(
             format_hotkey(self.stop_hotkey)
         )
         stop_layout.addWidget(self.stop_hotkey_label)
 
-        self.stop_record_button = QPushButton("Изменить")
+        self.stop_record_button = QPushButton()
         self.stop_record_button.clicked.connect(
             lambda: self.begin_capture("stop")
         )
         stop_layout.addWidget(self.stop_record_button)
         layout.addLayout(stop_layout)
 
-        self.capture_status = QLabel(
-            "Нажми «Изменить», чтобы назначить комбинацию."
-        )
+        self.capture_status = QLabel()
         layout.addWidget(self.capture_status)
 
-        self.cancel_capture_button = QPushButton(
-            "Отменить запись клавиши"
-        )
+        self.cancel_capture_button = QPushButton()
         self.cancel_capture_button.clicked.connect(
             self.cancel_capture
         )
@@ -189,17 +203,52 @@ class AutoClicker(QWidget):
         layout.addWidget(self.cancel_capture_button)
 
         self.setLayout(layout)
+        language_index = self.language_selector.findData(self.language_code)
+        self.language_selector.setCurrentIndex(language_index)
+        self.update_language()
         self.update_mode()
+
+    def tr(self, key, **values):
+        return TRANSLATIONS[self.language_code][key].format(**values)
+
+    def change_language(self):
+        language_code = self.language_selector.currentData()
+        if not language_code or language_code == self.language_code:
+            return
+        self.language_code = language_code
+        self.settings.setValue("language", language_code)
+        self.update_language()
+
+    def update_language(self):
+        self.language_label.setText(self.tr("language"))
+        self.interval_label.setText(self.tr("interval"))
+        self.minutes.setSuffix(self.tr("minutes"))
+        self.seconds.setSuffix(self.tr("seconds"))
+        self.mode.setItemText(0, self.tr("repeat_mode"))
+        self.mode.setItemText(1, self.tr("limited_mode"))
+        self.start_button.setText(self.tr("start"))
+        self.stop_button.setText(self.tr("stop"))
+        self.hotkeys_title.setText(self.tr("hotkeys"))
+        self.start_hotkey_title.setText(self.tr("launch"))
+        self.stop_hotkey_title.setText(self.tr("halt"))
+        self.start_record_button.setText(self.tr("change"))
+        self.stop_record_button.setText(self.tr("change"))
+        self.cancel_capture_button.setText(self.tr("cancel_capture"))
+        self.status.setText(self.tr(self.status_key))
+        self.counter.setText(self.tr("click_count", count=self.clicker.click_count))
+        self.update_elapsed_time()
+        self.update_mode()
+        self.capture_status.setText(self.tr(self.capture_status_key))
+        if hasattr(self, "tray_icon"):
+            self.tray_icon.setToolTip(self.tr("tray_tooltip"))
+            self.show_action.setText(self.tr("tray_open"))
+            self.quit_action.setText(self.tr("tray_quit"))
 
     def update_mode(self):
         if self.mode.currentData() == "repeat":
-            self.amount_label.setText(
-                "Количество кликов в серии:"
-            )
+            self.amount_label.setText(self.tr("batch_count"))
         else:
-            self.amount_label.setText(
-                "Общее количество кликов:"
-            )
+            self.amount_label.setText(self.tr("total_count"))
 
     def begin_capture(self, target):
         self.capture_target = target
@@ -209,10 +258,8 @@ class AutoClicker(QWidget):
         self.stop_record_button.setEnabled(False)
         self.cancel_capture_button.setEnabled(True)
 
-        action = "запуску" if target == "start" else "остановки"
-        self.capture_status.setText(
-            f"Нажми клавишу или комбинацию для {action}..."
-        )
+        self.capture_status_key = f"capturing_{target}"
+        self.capture_status.setText(self.tr(self.capture_status_key))
 
     def cancel_capture(self):
         self.keyboard_bridge.cancel_capture()
@@ -222,7 +269,8 @@ class AutoClicker(QWidget):
         self.stop_record_button.setEnabled(True)
         self.cancel_capture_button.setEnabled(False)
 
-        self.capture_status.setText("Запись отменена.")
+        self.capture_status_key = "capture_cancelled"
+        self.capture_status.setText(self.tr(self.capture_status_key))
 
     def finish_capture(self, target, combo):
         self.capture_target = None
@@ -232,27 +280,23 @@ class AutoClicker(QWidget):
         self.cancel_capture_button.setEnabled(False)
 
         if not combo:
-            self.capture_status.setText(
-                "Не удалось записать клавишу."
-            )
+            self.capture_status_key = "capture_failed"
+            self.capture_status.setText(self.tr(self.capture_status_key))
             return
 
         if not normalize_hotkey(combo) - {
             "ctrl", "alt", "shift", "cmd"
         }:
-            self.capture_status.setText(
-                "Выберите клавишу или комбинацию, "
-                "которая содержит не только модификаторы."
-            )
+            self.capture_status_key = "modifier_error"
+            self.capture_status.setText(self.tr(self.capture_status_key))
             return
 
         if target == "start":
             if normalize_hotkey(combo) == normalize_hotkey(
                 self.stop_hotkey
             ):
-                self.capture_status.setText(
-                    "Комбинация уже используется для остановки."
-                )
+                self.capture_status_key = "duplicate_stop"
+                self.capture_status.setText(self.tr(self.capture_status_key))
                 return
 
             self.start_hotkey = combo
@@ -265,9 +309,8 @@ class AutoClicker(QWidget):
             if normalize_hotkey(combo) == normalize_hotkey(
                 self.start_hotkey
             ):
-                self.capture_status.setText(
-                    "Комбинация уже используется для запуска."
-                )
+                self.capture_status_key = "duplicate_start"
+                self.capture_status.setText(self.tr(self.capture_status_key))
                 return
 
             self.stop_hotkey = combo
@@ -281,9 +324,8 @@ class AutoClicker(QWidget):
             self.stop_hotkey,
         )
 
-        self.capture_status.setText(
-            "Горячие клавиши сохранены."
-        )
+        self.capture_status_key = "hotkeys_saved"
+        self.capture_status.setText(self.tr(self.capture_status_key))
 
     def start_clicking(self):
         if self.running:
@@ -293,8 +335,8 @@ class AutoClicker(QWidget):
         if interval < 1:
             QMessageBox.warning(
                 self,
-                "Некорректный интервал",
-                "Интервал должен быть не меньше 1 секунды.",
+                self.tr("invalid_interval_title"),
+                self.tr("invalid_interval"),
             )
             return
 
@@ -313,26 +355,31 @@ class AutoClicker(QWidget):
         self.minutes.setEnabled(False)
         self.seconds.setEnabled(False)
         self.amount.setEnabled(False)
-        self.status.setText("Состояние: работает")
-        self.counter.setText("Выполнено кликов: 0")
+        self.status_key = "status_running"
+        self.status.setText(self.tr(self.status_key))
+        self.counter.setText(self.tr("click_count", count=0))
 
     def update_click_count(self, count):
-        self.counter.setText(f"Выполнено кликов: {count}")
+        self.counter.setText(self.tr("click_count", count=count))
 
     def update_elapsed_time(self):
-        elapsed_seconds = self.elapsed_clock.elapsed() // 1000
+        elapsed_seconds = (
+            self.elapsed_clock.elapsed() // 1000
+            if self.elapsed_clock.isValid()
+            else 0
+        )
         hours, remainder = divmod(elapsed_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         self.elapsed_label.setText(
-            f"Время работы: {hours:02d}:{minutes:02d}:{seconds:02d}"
+            self.tr("elapsed", time=f"{hours:02d}:{minutes:02d}:{seconds:02d}")
         )
 
     def clicking_finished(self):
-        self.stop_clicking("Состояние: завершено")
+        self.stop_clicking("status_completed")
 
     def clicking_failed(self, message):
-        self.stop_clicking("Состояние: ошибка")
-        QMessageBox.critical(self, "Ошибка управления мышью", message)
+        self.stop_clicking("status_error")
+        QMessageBox.critical(self, self.tr("mouse_error_title"), message)
 
     def stop_clicking(self, status_text=None):
         self.clicker.stop()
@@ -346,14 +393,15 @@ class AutoClicker(QWidget):
         self.minutes.setEnabled(True)
         self.seconds.setEnabled(True)
         self.amount.setEnabled(True)
-        self.status.setText(status_text or "Состояние: остановлено")
+        self.status_key = status_text or "status_stopped"
+        self.status.setText(self.tr(self.status_key))
 
     def closeEvent(self, event):
         if self.tray_available and not getattr(self, "quitting", False):
             self.hide()
             self.tray_icon.showMessage(
                 "Presence",
-                "Автокликер работает в системном трее.",
+                self.tr("tray_hidden"),
                 QSystemTrayIcon.MessageIcon.Information,
                 2500,
             )
