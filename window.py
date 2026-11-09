@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import QElapsedTimer, QSettings, QTimer
 from PySide6.QtWidgets import (
     QApplication,
@@ -12,6 +14,7 @@ from PySide6.QtWidgets import (
     QSystemTrayIcon,
     QMenu,
     QStyle,
+    QFrame,
 )
 
 from clicker import Clicker
@@ -22,8 +25,11 @@ class AutoClicker(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.setObjectName("mainWindow")
         self.setWindowTitle("Presence")
-        self.setMinimumWidth(380)
+        self.setMinimumSize(760, 470)
+        style_path = Path(__file__).resolve().parent / "styles" / "dark.qss"
+        self.setStyleSheet(style_path.read_text(encoding="utf-8"))
 
         self.settings = QSettings(
             "Presence",
@@ -94,117 +100,154 @@ class AutoClicker(QWidget):
             self.tray_icon.show()
 
     def create_interface(self):
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 20, 24, 24)
+        layout.setSpacing(20)
 
-        language_layout = QHBoxLayout()
+        header = QHBoxLayout()
+        header.setSpacing(18)
+        title_stack = QVBoxLayout()
+        title_stack.setSpacing(1)
+        self.title_label = QLabel("Presence")
+        self.title_label.setObjectName("appTitle")
+        self.subtitle_label = QLabel()
+        self.subtitle_label.setObjectName("appSubtitle")
+        title_stack.addWidget(self.title_label)
+        title_stack.addWidget(self.subtitle_label)
+        header.addLayout(title_stack)
+        header.addStretch()
         self.language_label = QLabel()
-        language_layout.addWidget(self.language_label)
+        header.addWidget(self.language_label)
         self.language_selector = QComboBox()
         for code, name in LANGUAGE_NAMES.items():
             self.language_selector.addItem(name, code)
-        language_layout.addWidget(self.language_selector)
-        language_layout.addStretch()
+        self.language_selector.setMinimumWidth(140)
         self.language_selector.currentIndexChanged.connect(self.change_language)
-        layout.addLayout(language_layout)
+        header.addWidget(self.language_selector)
+        layout.addLayout(header)
 
+        content = QHBoxLayout()
+        content.setSpacing(18)
+        settings_panel = QFrame()
+        settings_panel.setObjectName("panel")
+        settings_layout = QVBoxLayout(settings_panel)
+        settings_layout.setContentsMargins(20, 19, 20, 20)
+        settings_layout.setSpacing(13)
+
+        self.settings_title = QLabel()
+        self.settings_title.setObjectName("sectionTitle")
+        settings_layout.addWidget(self.settings_title)
+
+        self.mode_label = QLabel()
+        settings_layout.addWidget(self.mode_label)
         self.mode = QComboBox()
         self.mode.addItem("", "repeat")
         self.mode.addItem("", "limited")
         self.mode.currentIndexChanged.connect(self.update_mode)
-        layout.addWidget(self.mode)
+        settings_layout.addWidget(self.mode)
 
         self.interval_label = QLabel()
-        layout.addWidget(self.interval_label)
-
+        settings_layout.addWidget(self.interval_label)
         time_layout = QHBoxLayout()
-
+        time_layout.setSpacing(10)
         self.minutes = QSpinBox()
         self.minutes.setRange(0, 999)
-        self.minutes.setSuffix(self.tr("minutes"))
-        time_layout.addWidget(self.minutes)
-
+        time_layout.addWidget(self.minutes, 2)
         self.seconds = QSpinBox()
         self.seconds.setRange(0, 59)
         self.seconds.setValue(4)
-        self.seconds.setSuffix(self.tr("seconds"))
-        time_layout.addWidget(self.seconds)
-
-        layout.addLayout(time_layout)
+        time_layout.addWidget(self.seconds, 1)
+        settings_layout.addLayout(time_layout)
 
         self.amount_label = QLabel()
-        layout.addWidget(self.amount_label)
-
+        settings_layout.addWidget(self.amount_label)
         self.amount = QSpinBox()
         self.amount.setRange(1, 100000)
         self.amount.setValue(1)
-        layout.addWidget(self.amount)
+        settings_layout.addWidget(self.amount)
 
+        buttons = QHBoxLayout()
+        buttons.setSpacing(10)
         self.start_button = QPushButton()
+        self.start_button.setObjectName("startButton")
         self.start_button.clicked.connect(self.start_clicking)
-        layout.addWidget(self.start_button)
-
+        buttons.addWidget(self.start_button)
         self.stop_button = QPushButton()
+        self.stop_button.setObjectName("stopButton")
         self.stop_button.clicked.connect(self.stop_clicking)
         self.stop_button.setEnabled(False)
-        layout.addWidget(self.stop_button)
+        buttons.addWidget(self.stop_button)
+        settings_layout.addLayout(buttons)
 
         self.status = QLabel()
-        layout.addWidget(self.status)
+        self.status.setObjectName("statusLabel")
+        settings_layout.addWidget(self.status)
+        settings_layout.addStretch()
+
+        activity_panel = QFrame()
+        activity_panel.setObjectName("panel")
+        activity_layout = QVBoxLayout(activity_panel)
+        activity_layout.setContentsMargins(20, 19, 20, 20)
+        activity_layout.setSpacing(12)
+        self.activity_title = QLabel()
+        self.activity_title.setObjectName("sectionTitle")
+        activity_layout.addWidget(self.activity_title)
 
         self.counter = QLabel()
-        layout.addWidget(self.counter)
-
+        self.counter.setObjectName("metricLabel")
+        activity_layout.addWidget(self.counter)
         self.elapsed_label = QLabel()
-        layout.addWidget(self.elapsed_label)
+        self.elapsed_label.setObjectName("metricLabel")
+        activity_layout.addWidget(self.elapsed_label)
 
         self.hotkeys_title = QLabel()
-        layout.addWidget(self.hotkeys_title)
+        self.hotkeys_title.setObjectName("sectionTitle")
+        activity_layout.addWidget(self.hotkeys_title)
 
         start_layout = QHBoxLayout()
         self.start_hotkey_title = QLabel()
         start_layout.addWidget(self.start_hotkey_title)
-
-        self.start_hotkey_label = QLabel(
-            format_hotkey(self.start_hotkey)
-        )
+        self.start_hotkey_label = QLabel(format_hotkey(self.start_hotkey))
+        self.start_hotkey_label.setMinimumWidth(65)
         start_layout.addWidget(self.start_hotkey_label)
-
         self.start_record_button = QPushButton()
         self.start_record_button.clicked.connect(
             lambda: self.begin_capture("start")
         )
         start_layout.addWidget(self.start_record_button)
-        layout.addLayout(start_layout)
+        activity_layout.addLayout(start_layout)
 
         stop_layout = QHBoxLayout()
         self.stop_hotkey_title = QLabel()
         stop_layout.addWidget(self.stop_hotkey_title)
-
-        self.stop_hotkey_label = QLabel(
-            format_hotkey(self.stop_hotkey)
-        )
+        self.stop_hotkey_label = QLabel(format_hotkey(self.stop_hotkey))
+        self.stop_hotkey_label.setMinimumWidth(65)
         stop_layout.addWidget(self.stop_hotkey_label)
-
         self.stop_record_button = QPushButton()
         self.stop_record_button.clicked.connect(
             lambda: self.begin_capture("stop")
         )
         stop_layout.addWidget(self.stop_record_button)
-        layout.addLayout(stop_layout)
+        activity_layout.addLayout(stop_layout)
 
         self.capture_status = QLabel()
-        layout.addWidget(self.capture_status)
-
+        self.capture_status.setObjectName("captureStatus")
+        self.capture_status.setWordWrap(True)
+        activity_layout.addWidget(self.capture_status)
         self.cancel_capture_button = QPushButton()
-        self.cancel_capture_button.clicked.connect(
-            self.cancel_capture
-        )
+        self.cancel_capture_button.clicked.connect(self.cancel_capture)
         self.cancel_capture_button.setEnabled(False)
-        layout.addWidget(self.cancel_capture_button)
+        activity_layout.addWidget(self.cancel_capture_button)
+        activity_layout.addStretch()
 
-        self.setLayout(layout)
+        content.addWidget(settings_panel, 11)
+        content.addWidget(activity_panel, 10)
+        layout.addLayout(content, 1)
+
         language_index = self.language_selector.findData(self.language_code)
         self.language_selector.setCurrentIndex(language_index)
+        self.minutes.setSuffix(self.tr("minutes"))
+        self.seconds.setSuffix(self.tr("seconds"))
         self.update_language()
         self.update_mode()
 
@@ -220,7 +263,11 @@ class AutoClicker(QWidget):
         self.update_language()
 
     def update_language(self):
+        self.subtitle_label.setText(self.tr("app_subtitle"))
         self.language_label.setText(self.tr("language"))
+        self.settings_title.setText(self.tr("settings_title"))
+        self.activity_title.setText(self.tr("activity_title"))
+        self.mode_label.setText(self.tr("mode_label"))
         self.interval_label.setText(self.tr("interval"))
         self.minutes.setSuffix(self.tr("minutes"))
         self.seconds.setSuffix(self.tr("seconds"))

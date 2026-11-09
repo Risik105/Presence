@@ -1,5 +1,8 @@
 TRANSLATIONS = {
     "en": {
+        "app_subtitle": "A simple autoclicker for your workflow",
+        "settings_title": "Click settings", "activity_title": "Activity and shortcuts",
+        "mode_label": "Operating mode:",
         "language": "Language:", "repeat_mode": "Repeat in batches",
         "limited_mode": "Limited number of clicks", "interval": "Interval between clicks:",
         "minutes": " min", "seconds": " sec", "batch_count": "Clicks per batch:",
@@ -22,6 +25,9 @@ TRANSLATIONS = {
         "tray_hidden": "The autoclicker is running in the system tray.",
     },
     "ua": {
+        "app_subtitle": "Зручний автоклікер для щоденних задач",
+        "settings_title": "Налаштування кліків", "activity_title": "Стан і гарячі клавіші",
+        "mode_label": "Режим роботи:",
         "language": "Мова:", "repeat_mode": "Повторювати серіями",
         "limited_mode": "Обмежена кількість кліків", "interval": "Інтервал між кліками:",
         "minutes": " хв", "seconds": " с", "batch_count": "Кількість кліків у серії:",
@@ -44,6 +50,9 @@ TRANSLATIONS = {
         "tray_hidden": "Автоклікер працює в системному треї.",
     },
     "ru": {
+        "app_subtitle": "Простой автокликер для повседневных задач",
+        "settings_title": "Настройки кликов", "activity_title": "Состояние и горячие клавиши",
+        "mode_label": "Режим работы:",
         "language": "Язык:", "repeat_mode": "Повторять сериями",
         "limited_mode": "Ограниченное количество кликов", "interval": "Интервал между кликами:",
         "minutes": " мин", "seconds": " с", "batch_count": "Количество кликов в серии:",
@@ -66,6 +75,9 @@ TRANSLATIONS = {
         "tray_hidden": "Автокликер работает в системном трее.",
     },
     "pl": {
+        "app_subtitle": "Prosty autoclicker do codziennych zadań",
+        "settings_title": "Ustawienia kliknięć", "activity_title": "Stan i skróty klawiszowe",
+        "mode_label": "Tryb działania:",
         "language": "Język:", "repeat_mode": "Powtarzaj seriami",
         "limited_mode": "Ograniczona liczba kliknięć", "interval": "Odstęp między kliknięciami:",
         "minutes": " min", "seconds": " s", "batch_count": "Liczba kliknięć w serii:",

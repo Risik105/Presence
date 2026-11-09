@@ -1,0 +1,110 @@
+QWidget {
+    color: #e5edf8;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 10pt;
+}
+QWidget#mainWindow {
+    background-color: #0b1220;
+}
+QLabel {
+    background: transparent;
+}
+QFrame#hero {
+    background: transparent;
+}
+QLabel#appTitle {
+    color: #f5f8ff;
+    font-size: 24pt;
+    font-weight: 700;
+    background: transparent;
+}
+QLabel#appSubtitle {
+    color: #8fa2bf;
+    font-size: 9pt;
+    background: transparent;
+}
+QFrame#panel {
+    background-color: #121d2d;
+    border: 1px solid #26344a;
+    border-radius: 16px;
+}
+QLabel#sectionTitle {
+    color: #f0f5ff;
+    font-size: 12pt;
+    font-weight: 700;
+    padding-bottom: 4px;
+}
+QLabel#statusLabel, QLabel#metricLabel {
+    background-color: #1a2940;
+    border: 1px solid #2a3b55;
+    border-radius: 9px;
+    padding: 11px 12px;
+    font-weight: 600;
+}
+QLabel#statusLabel {
+    color: #77b7ff;
+}
+QComboBox, QSpinBox {
+    background-color: #1a2638;
+    color: #e5edf8;
+    border: 1px solid #34445d;
+    border-radius: 8px;
+    padding: 8px 10px;
+    selection-background-color: #3978d4;
+}
+QComboBox:hover, QSpinBox:hover {
+    border-color: #6589b7;
+}
+QComboBox:focus, QSpinBox:focus {
+    border: 1px solid #4b91ed;
+}
+QComboBox QAbstractItemView {
+    color: #e5edf8;
+    background-color: #1a2638;
+    selection-background-color: #2b4b74;
+    border: 1px solid #34445d;
+}
+QPushButton {
+    color: #dce7f7;
+    background-color: #1a2638;
+    border: 1px solid #34445d;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-weight: 600;
+}
+QPushButton:hover {
+    background-color: #24344a;
+    border-color: #587398;
+}
+QPushButton:disabled {
+    color: #75849a;
+    background-color: #172131;
+    border-color: #273448;
+}
+QPushButton#startButton {
+    color: #ffffff;
+    background-color: #347fe0;
+    border: 1px solid #347fe0;
+    padding: 11px;
+}
+QPushButton#startButton:hover {
+    background-color: #438deb;
+}
+QPushButton#startButton:disabled {
+    color: #8091aa;
+    background-color: #20324b;
+    border-color: #2a3b55;
+}
+QPushButton#stopButton {
+    color: #ff9b9b;
+    background-color: #35212a;
+    border: 1px solid #65404a;
+    padding: 11px;
+}
+QPushButton#stopButton:hover {
+    background-color: #482832;
+}
+QLabel#captureStatus {
+    color: #8fa2bf;
+    font-size: 9pt;
+}
