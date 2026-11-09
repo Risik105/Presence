@@ -28,8 +28,15 @@ class AutoClicker(QWidget):
         self.setObjectName("mainWindow")
         self.setWindowTitle("Presence")
         self.setMinimumSize(760, 470)
-        style_path = Path(__file__).resolve().parent / "styles" / "dark.qss"
-        self.setStyleSheet(style_path.read_text(encoding="utf-8"))
+        style_dir = Path(__file__).resolve().parent / "styles"
+        style_path = style_dir / "dark.qss"
+        stylesheet = style_path.read_text(encoding="utf-8")
+        for icon_name in ("chevron-down.svg", "chevron-up.svg"):
+            icon_path = (style_dir / icon_name).as_posix()
+            stylesheet = stylesheet.replace(
+                f"url({icon_name})", f'url("{icon_path}")'
+            )
+        self.setStyleSheet(stylesheet)
 
         self.settings = QSettings(
             "Presence",
