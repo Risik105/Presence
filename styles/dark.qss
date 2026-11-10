@@ -32,14 +32,17 @@ QLabel#sectionTitle {
     color: #f0f5ff;
     font-size: 12pt;
     font-weight: 700;
-    padding-bottom: 4px;
+    padding: 0;
 }
 QLabel#statusLabel, QLabel#metricLabel {
     background-color: #1a2940;
     border: 1px solid #2a3b55;
     border-radius: 9px;
-    padding: 11px 12px;
+    padding: 12px;
     font-weight: 600;
+}
+QLabel#metricLabel {
+    padding: 10px;
 }
 QLabel#statusLabel {
     color: #77b7ff;
@@ -49,7 +52,7 @@ QComboBox, QSpinBox {
     color: #e5edf8;
     border: 1px solid #34445d;
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 10px;
     selection-background-color: #3978d4;
 }
 QComboBox:hover, QSpinBox:hover {
@@ -126,7 +129,7 @@ QPushButton {
     background-color: #1a2638;
     border: 1px solid #34445d;
     border-radius: 8px;
-    padding: 9px 12px;
+    padding: 12px;
     font-weight: 600;
 }
 QPushButton:hover {

@@ -108,7 +108,7 @@ class AutoClicker(QWidget):
 
     def create_interface(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 20, 24, 24)
+        layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(20)
 
         header = QHBoxLayout()
@@ -138,8 +138,8 @@ class AutoClicker(QWidget):
         settings_panel = QFrame()
         settings_panel.setObjectName("panel")
         settings_layout = QVBoxLayout(settings_panel)
-        settings_layout.setContentsMargins(20, 19, 20, 20)
-        settings_layout.setSpacing(13)
+        settings_layout.setContentsMargins(20, 20, 20, 20)
+        settings_layout.setSpacing(10)
 
         self.settings_title = QLabel()
         self.settings_title.setObjectName("sectionTitle")
@@ -159,10 +159,12 @@ class AutoClicker(QWidget):
         time_layout.setSpacing(10)
         self.minutes = QSpinBox()
         self.minutes.setRange(0, 999)
+        self.minutes.lineEdit().setTextMargins(12, 0, 12, 0)
         time_layout.addWidget(self.minutes, 2)
         self.seconds = QSpinBox()
         self.seconds.setRange(0, 59)
         self.seconds.setValue(4)
+        self.seconds.lineEdit().setTextMargins(12, 0, 12, 0)
         time_layout.addWidget(self.seconds, 1)
         settings_layout.addLayout(time_layout)
 
@@ -171,6 +173,7 @@ class AutoClicker(QWidget):
         self.amount = QSpinBox()
         self.amount.setRange(1, 100000)
         self.amount.setValue(1)
+        self.amount.lineEdit().setTextMargins(12, 0, 12, 0)
         settings_layout.addWidget(self.amount)
 
         buttons = QHBoxLayout()
@@ -194,7 +197,7 @@ class AutoClicker(QWidget):
         activity_panel = QFrame()
         activity_panel.setObjectName("panel")
         activity_layout = QVBoxLayout(activity_panel)
-        activity_layout.setContentsMargins(20, 19, 20, 20)
+        activity_layout.setContentsMargins(20, 20, 20, 20)
         activity_layout.setSpacing(12)
         self.activity_title = QLabel()
         self.activity_title.setObjectName("sectionTitle")
@@ -212,6 +215,7 @@ class AutoClicker(QWidget):
         activity_layout.addWidget(self.hotkeys_title)
 
         start_layout = QHBoxLayout()
+        start_layout.setSpacing(10)
         self.start_hotkey_title = QLabel()
         start_layout.addWidget(self.start_hotkey_title)
         self.start_hotkey_label = QLabel(format_hotkey(self.start_hotkey))
@@ -225,6 +229,7 @@ class AutoClicker(QWidget):
         activity_layout.addLayout(start_layout)
 
         stop_layout = QHBoxLayout()
+        stop_layout.setSpacing(10)
         self.stop_hotkey_title = QLabel()
         stop_layout.addWidget(self.stop_hotkey_title)
         self.stop_hotkey_label = QLabel(format_hotkey(self.stop_hotkey))
