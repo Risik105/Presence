@@ -28,20 +28,14 @@ class AutoClicker(QWidget):
         self.setObjectName("mainWindow")
         self.setWindowTitle("Presence")
         self.setMinimumSize(760, 470)
-        style_dir = Path(__file__).resolve().parent / "styles"
-        style_path = style_dir / "dark.qss"
-        stylesheet = style_path.read_text(encoding="utf-8")
-        for icon_name in ("chevron-down.svg", "chevron-up.svg"):
-            icon_path = (style_dir / icon_name).as_posix()
-            stylesheet = stylesheet.replace(
-                f"url({icon_name})", f'url("{icon_path}")'
-            )
-        self.setStyleSheet(stylesheet)
-
         self.settings = QSettings(
             "Presence",
             "AutoClicker",
         )
+        saved_theme = self.settings.value("theme", "dark", type=str)
+        self.theme_code = saved_theme if saved_theme in {"dark", "light"} else "dark"
+        self.apply_theme()
+
         saved_language = self.settings.value("language", "en", type=str)
         self.language_code = saved_language if saved_language in TRANSLATIONS else "en"
         self.status_key = "status_waiting"
@@ -131,6 +125,14 @@ class AutoClicker(QWidget):
         self.language_selector.setMinimumWidth(140)
         self.language_selector.currentIndexChanged.connect(self.change_language)
         header.addWidget(self.language_selector)
+        self.theme_label = QLabel()
+        header.addWidget(self.theme_label)
+        self.theme_selector = QComboBox()
+        self.theme_selector.addItem("", "dark")
+        self.theme_selector.addItem("", "light")
+        self.theme_selector.setMinimumWidth(110)
+        self.theme_selector.currentIndexChanged.connect(self.change_theme)
+        header.addWidget(self.theme_selector)
         layout.addLayout(header)
 
         content = QHBoxLayout()
@@ -258,6 +260,8 @@ class AutoClicker(QWidget):
 
         language_index = self.language_selector.findData(self.language_code)
         self.language_selector.setCurrentIndex(language_index)
+        theme_index = self.theme_selector.findData(self.theme_code)
+        self.theme_selector.setCurrentIndex(theme_index)
         self.minutes.setSuffix(self.tr("minutes"))
         self.seconds.setSuffix(self.tr("seconds"))
         self.update_language()
@@ -265,6 +269,28 @@ class AutoClicker(QWidget):
 
     def tr(self, key, **values):
         return TRANSLATIONS[self.language_code][key].format(**values)
+
+    def apply_theme(self):
+        style_dir = Path(__file__).resolve().parent / "styles"
+        stylesheet = (style_dir / f"{self.theme_code}.qss").read_text(
+            encoding="utf-8"
+        )
+        icon_suffix = "-light" if self.theme_code == "light" else ""
+        for direction in ("down", "up"):
+            icon_name = f"chevron-{direction}{icon_suffix}.svg"
+            icon_path = (style_dir / icon_name).as_posix()
+            stylesheet = stylesheet.replace(
+                f"url({icon_name})", f'url("{icon_path})'
+            )
+        self.setStyleSheet(stylesheet)
+
+    def change_theme(self):
+        theme_code = self.theme_selector.currentData()
+        if not theme_code or theme_code == self.theme_code:
+            return
+        self.theme_code = theme_code
+        self.settings.setValue("theme", theme_code)
+        self.apply_theme()
 
     def change_language(self):
         language_code = self.language_selector.currentData()
@@ -277,6 +303,9 @@ class AutoClicker(QWidget):
     def update_language(self):
         self.subtitle_label.setText(self.tr("app_subtitle"))
         self.language_label.setText(self.tr("language"))
+        self.theme_label.setText(self.tr("theme"))
+        self.theme_selector.setItemText(0, self.tr("dark_theme"))
+        self.theme_selector.setItemText(1, self.tr("light_theme"))
         self.settings_title.setText(self.tr("settings_title"))
         self.activity_title.setText(self.tr("activity_title"))
         self.mode_label.setText(self.tr("mode_label"))
