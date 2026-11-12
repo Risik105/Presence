@@ -78,7 +78,7 @@ QComboBox::drop-down:hover {
     background-color: #e0e9f5;
 }
 QComboBox::down-arrow {
-    image: url(chevron-down.svg);
+    image: url(chevron-down-light.svg);
     width: 10px;
     height: 10px;
     border: none;
@@ -107,13 +107,13 @@ QSpinBox::up-button:hover, QSpinBox::down-button:hover {
     background-color: #e0e9f5;
 }
 QSpinBox::up-arrow {
-    image: url(chevron-up.svg);
+    image: url(chevron-up-light.svg);
     width: 10px;
     height: 10px;
     border: none;
 }
 QSpinBox::down-arrow {
-    image: url(chevron-down.svg);
+    image: url(chevron-down-light.svg);
     width: 10px;
     height: 10px;
     border: none;

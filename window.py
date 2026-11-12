@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import QElapsedTimer, QSettings, QTimer
+from PySide6.QtCore import QElapsedTimer, QSettings, QTimer, Qt
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -33,8 +33,15 @@ class AutoClicker(QWidget):
             "AutoClicker",
         )
         saved_theme = self.settings.value("theme", "dark", type=str)
-        self.theme_code = saved_theme if saved_theme in {"dark", "light"} else "dark"
+        self.theme_code = (
+            saved_theme
+            if saved_theme in {"dark", "light", "system"}
+            else "dark"
+        )
         self.apply_theme()
+        QApplication.styleHints().colorSchemeChanged.connect(
+            self.on_system_color_scheme_changed
+        )
 
         saved_language = self.settings.value("language", "en", type=str)
         self.language_code = saved_language if saved_language in TRANSLATIONS else "en"
@@ -117,6 +124,15 @@ class AutoClicker(QWidget):
         title_stack.addWidget(self.subtitle_label)
         header.addLayout(title_stack)
         header.addStretch()
+        self.theme_label = QLabel()
+        header.addWidget(self.theme_label)
+        self.theme_selector = QComboBox()
+        self.theme_selector.addItem("", "dark")
+        self.theme_selector.addItem("", "light")
+        self.theme_selector.addItem("", "system")
+        self.theme_selector.setMinimumWidth(110)
+        self.theme_selector.currentIndexChanged.connect(self.change_theme)
+        header.addWidget(self.theme_selector)
         self.language_label = QLabel()
         header.addWidget(self.language_label)
         self.language_selector = QComboBox()
@@ -125,14 +141,6 @@ class AutoClicker(QWidget):
         self.language_selector.setMinimumWidth(140)
         self.language_selector.currentIndexChanged.connect(self.change_language)
         header.addWidget(self.language_selector)
-        self.theme_label = QLabel()
-        header.addWidget(self.theme_label)
-        self.theme_selector = QComboBox()
-        self.theme_selector.addItem("", "dark")
-        self.theme_selector.addItem("", "light")
-        self.theme_selector.setMinimumWidth(110)
-        self.theme_selector.currentIndexChanged.connect(self.change_theme)
-        header.addWidget(self.theme_selector)
         layout.addLayout(header)
 
         content = QHBoxLayout()
@@ -272,17 +280,29 @@ class AutoClicker(QWidget):
 
     def apply_theme(self):
         style_dir = Path(__file__).resolve().parent / "styles"
-        stylesheet = (style_dir / f"{self.theme_code}.qss").read_text(
+        if self.theme_code == "system":
+            system_scheme = QApplication.styleHints().colorScheme()
+            self.active_theme = (
+                "light" if system_scheme == Qt.ColorScheme.Light else "dark"
+            )
+        else:
+            self.active_theme = self.theme_code
+
+        stylesheet = (style_dir / f"{self.active_theme}.qss").read_text(
             encoding="utf-8"
         )
-        icon_suffix = "-light" if self.theme_code == "light" else ""
+        icon_suffix = "-light" if self.active_theme == "light" else ""
         for direction in ("down", "up"):
             icon_name = f"chevron-{direction}{icon_suffix}.svg"
-            icon_path = (style_dir / icon_name).as_posix()
+            icon_path = (style_dir / icon_name).resolve().as_posix()
             stylesheet = stylesheet.replace(
-                f"url({icon_name})", f'url("{icon_path})'
+                f"url({icon_name})", f'url("{icon_path}")'
             )
         self.setStyleSheet(stylesheet)
+
+    def on_system_color_scheme_changed(self, _scheme):
+        if self.theme_code == "system":
+            self.apply_theme()
 
     def change_theme(self):
         theme_code = self.theme_selector.currentData()
@@ -306,6 +326,7 @@ class AutoClicker(QWidget):
         self.theme_label.setText(self.tr("theme"))
         self.theme_selector.setItemText(0, self.tr("dark_theme"))
         self.theme_selector.setItemText(1, self.tr("light_theme"))
+        self.theme_selector.setItemText(2, self.tr("system_theme"))
         self.settings_title.setText(self.tr("settings_title"))
         self.activity_title.setText(self.tr("activity_title"))
         self.mode_label.setText(self.tr("mode_label"))
