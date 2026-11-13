@@ -1,0 +1,7 @@
+[tool.pyside6.deploy]
+title = "Presence"
+input_file = "main.py"
+exec_directory = "dist"
+icon = "images/presence_icon_app.ico"
+mode = "standalone"
+extra_args = "--include-data-dir=styles=styles --include-data-dir=images=images --output-filename=Presence.exe --windows-console-mode=disable"

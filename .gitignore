@@ -6,6 +6,7 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+.venv-build/
 env/
 ENV/
 
@@ -20,3 +21,11 @@ htmlcov/
 .env
 .vscode/*
 .idea/
+
+# Nutika and PySide6 deployment output
+dist/
+deployment/
+*.build/
+*.dist/
+pysidedeploy.spec
+nutika-crash-report.xml
