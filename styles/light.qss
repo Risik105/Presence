@@ -78,7 +78,7 @@ QComboBox::drop-down:hover {
     background-color: #e0e9f5;
 }
 QComboBox::down-arrow {
-    image: url(chevron-down-light.svg);
+    image: url(../images/chevron-down-light.svg);
     width: 10px;
     height: 10px;
     border: none;
@@ -107,13 +107,13 @@ QSpinBox::up-button:hover, QSpinBox::down-button:hover {
     background-color: #e0e9f5;
 }
 QSpinBox::up-arrow {
-    image: url(chevron-up-light.svg);
+    image: url(../images/chevron-up-light.svg);
     width: 10px;
     height: 10px;
     border: none;
 }
 QSpinBox::down-arrow {
-    image: url(chevron-down-light.svg);
+    image: url(../images/chevron-down-light.svg);
     width: 10px;
     height: 10px;
     border: none;
@@ -156,13 +156,18 @@ QPushButton#startButton:disabled {
     border-color: #dce5f0;
 }
 QPushButton#stopButton {
-    color: #a6383b;
-    background-color: #fff5f4;
+    color: #ff3535;
+    background-color: #ffc4be;
     border: 1px solid #f0ceca;
     padding: 11px;
 }
 QPushButton#stopButton:hover {
     background-color: #ffe9e6;
+}
+QPushButton#stopButton:disabled {
+    color: #a1a9b5;
+    background-color: #f1f3f6;
+    background-color: #e0e5ec;
 }
 QLabel#captureStatus {
     color: #66758d;

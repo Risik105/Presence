@@ -28,8 +28,8 @@ class AutoClicker(QWidget):
         self.setObjectName("mainWindow")
         self.setWindowTitle("Presence")
         self.setMinimumSize(760, 470)
-        assets_dir = Path(__file__).resolve().parent / "styles"
-        self.app_icon = QIcon(str(assets_dir / "presence_icon_app.svg"))
+        images_dir = Path(__file__).resolve().parent / "images"
+        self.app_icon = QIcon(str(images_dir / "presence_icon_app.svg"))
         self.setWindowIcon(self.app_icon)
         QApplication.instance().setWindowIcon(self.app_icon)
         self.settings = QSettings(
@@ -281,7 +281,9 @@ class AutoClicker(QWidget):
         return TRANSLATIONS[self.language_code][key].format(**values)
 
     def apply_theme(self):
-        style_dir = Path(__file__).resolve().parent / "styles"
+        project_dir = Path(__file__).resolve().parent
+        style_dir = project_dir / "styles"
+        images_dir = project_dir / "images"
         if self.theme_code == "system":
             system_scheme = QApplication.styleHints().colorScheme()
             self.active_theme = (
@@ -296,9 +298,9 @@ class AutoClicker(QWidget):
         icon_suffix = "-light" if self.active_theme == "light" else ""
         for direction in ("down", "up"):
             icon_name = f"chevron-{direction}{icon_suffix}.svg"
-            icon_path = (style_dir / icon_name).resolve().as_posix()
+            icon_path = (images_dir / icon_name).resolve().as_posix()
             stylesheet = stylesheet.replace(
-                f"url({icon_name})", f'url("{icon_path}")'
+                f"url(../images/{icon_name})", f'url("{icon_path}")'
             )
         self.setStyleSheet(stylesheet)
 
