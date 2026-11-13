@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QElapsedTimer, QSettings, QTimer, Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -13,7 +14,6 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QSystemTrayIcon,
     QMenu,
-    QStyle,
     QFrame,
 )
 
@@ -28,6 +28,10 @@ class AutoClicker(QWidget):
         self.setObjectName("mainWindow")
         self.setWindowTitle("Presence")
         self.setMinimumSize(760, 470)
+        assets_dir = Path(__file__).resolve().parent / "styles"
+        self.app_icon = QIcon(str(assets_dir / "presence_icon_app.svg"))
+        self.setWindowIcon(self.app_icon)
+        QApplication.instance().setWindowIcon(self.app_icon)
         self.settings = QSettings(
             "Presence",
             "AutoClicker",
@@ -89,9 +93,7 @@ class AutoClicker(QWidget):
 
     def create_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
-        )
+        self.tray_icon.setIcon(self.app_icon)
         self.tray_icon.setToolTip(self.tr("tray_tooltip"))
 
         tray_menu = QMenu()
