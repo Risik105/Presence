@@ -19,5 +19,4 @@ htmlcov/
 # Local environment and editor files
 .env
 .vscode/*
-!.vscode/settings.json
 .idea/
